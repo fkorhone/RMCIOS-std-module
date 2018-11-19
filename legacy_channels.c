@@ -132,7 +132,7 @@ void commander_class_func (struct commander_data *this,
                             (const union param_rmcios) 0);
 
       // Write the parameter printed write_command to commanded channel:
-      if (this->write_command[0] != 0)
+      /*if (this->write_command[0] != 0)
       {
          if (paramtype == buffer_rmcios || paramtype == channel_rmcios)
          {
@@ -146,7 +146,7 @@ void commander_class_func (struct commander_data *this,
                          channel_rmcios,
                          (void *) this->commanded_channel, 0, NULL);
          }
-      }
+      }*/
       break;
    }
 }

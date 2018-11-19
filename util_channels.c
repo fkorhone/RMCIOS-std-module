@@ -38,296 +38,162 @@ along with RMCIOS.  If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include <stdio.h>
 
+///////////////////////////////////
+// Channel for comparing values
+///////////////////////////////////
+
+void compare_class_func (void *this,
+                        const struct context_rmcios *context, int id,
+                        enum function_rmcios function,
+                        enum type_rmcios paramtype,
+                        union param_rmcios returnv,
+                        int num_params, const union param_rmcios param){
+   int pstrlen;
+   int write=0;
+   switch (function)
+   {
+      case help_rmcios:
+         return_string (context, paramtype, returnv,
+              "help for compare channel\r\n"
+              "create compare newname\r\n"
+              "read compare type value1 value2\r\n"
+              "write newname type value1 value2\r\n"
+              "link newname channel\r\n"
+               ) ;
+         break ;
+
+      case create_rmcios :
+         if(num_params<1) break;
+         create_channel_param (context, paramtype, param, 0, 
+                               (class_rmcios) compare_class_func, 0); 
+
+         break ;
+
+      case write_rmcios :
+         write=1 ;
+      case read_rmcios:
+         if(num_params<3) break ;
+         
+         char buf[2] ;
+         param_to_string(context,paramtype,param,0,2,buf) ;
+
+         int channel1=param_to_channel(context,paramtype,param,1) ;
+         int channel2=param_to_channel(context,paramtype,param,2) ;
+         int result ; 
+         switch(buf[0])
+         {
+            case 'i' : 
+               // int
+               {
+                  int value1 ;
+                  int value2 ;
+                  
+                  if(channel1==0) 
+                  {
+                     value1=param_to_integer(context,paramtype,param,1) ;
+                  }
+                  else value1= read_i(context, channel1) ;
+                  if(channel2==0) 
+                  {
+                     value2=param_to_integer(context,paramtype,param,2) ;
+                  }
+                  else value2= read_i(context, channel2) ;
+                  result= value1 == value2  ;
+               }
+               break;
+
+            case 'f' :
+               // float
+               {
+                  float value1 ;
+                  float value2 ;
+                  if(channel1==0) 
+                  {
+                     value1=param_to_float(context,paramtype,param,1) ;
+                  }
+                  else value1= read_f(context, channel1) ;
+
+                  if(channel2==0)
+                  {
+                     value2=param_to_float(context,paramtype,param,2) ;
+                  }
+                  else value2= read_f(context, channel2) ;
+                  result= value1 == value2 ;
+               }
+               break;
+
+            case 's' :
+               
+               if(channel1!=0 && channel2!=0)
+               // Compare strings read from 2 channels
+               {  
+                  int slen1=read_str(context,channel1,NULL,0)+1 ;
+                  int slen2=read_str(context,channel2,NULL,0)+1 ;
+                  {
+                     char s1[slen1] ;
+                     char s2[slen2] ;
+                     read_str(context, channel1, s1, slen1) ;
+                     read_str(context, channel2, s2, slen2) ;
+                     if(strcmp(s1,s2)==0 ) result=1  ;
+                     else result=0 ;
+                  }
+               }
+               else if(channel1!=0) 
+               // Compare another string from channel
+               {
+                  int slen1=read_str(context,channel1,NULL,0)+1 ;
+                  int slen2=param_string_alloc_size(context,paramtype,param,2) ;
+                  {   
+                     char s1[slen1] ;
+                     char buffer2[slen2] ;
+                     read_str(context, channel1, s1, slen1) ;
+                     const char *s2=param_to_string(context,paramtype,param,2,slen2,buffer2);
+                     if(strcmp(s1,s2)==0 ) result=1 ;
+                     else result=0 ;
+                  }
+               }
+               else if(channel2!=0)
+               // Compare another string from channel
+               {
+                  int slen1=param_string_alloc_size(context,paramtype,param,1) ;
+                  int slen2=read_str(context,channel2,NULL,0)+1 ;
+                  {
+                     char buffer1[slen1] ;
+                     char s2[slen2] ;
+                     const char *s1=param_to_string(context,paramtype,param,1,slen1,buffer1);
+                     read_str(context, channel2, s2, slen1) ;
+                     if(strcmp(s1,s2)==0 ) result=1 ;
+                     else result=0 ;
+                  }
+               } 
+               else
+               // compare 2 strings 
+               {
+                  int slen1=param_string_alloc_size(context,paramtype,param,1) ;
+                  int slen2=param_string_alloc_size(context,paramtype,param,2) ;
+                  {
+                     char buffer1[slen1] ;
+                     char buffer2[slen2] ;
+                     const char *s1,*s2 ;
+                     s1=param_to_string(context,paramtype,param,1,slen1,buffer1);
+                     s2=param_to_string(context,paramtype,param,2,slen2,buffer2);
+                     if(strcmp(s1,s2)==0 ) result=1 ;
+                     else result=0 ;
+                  }
+               }
+               break ;
+         }
+         return_int(context,paramtype,returnv,result) ;
+
+         // Send result to linked on write
+         if(write==1) write_i(context, linked_channels(context,id), result) ;
+         break;
+   }
+}
+
 /////////////////////////////////////////////////////
 // Channel for formatting channel data like printf //
 /////////////////////////////////////////////////////
-// Linked list of buffered data
-struct buffer_queue
-{
-   char *data;                  // Pointer to buffer that contains data
-   int length;                  // Length of data in the buffer
-   int size;                    // Size of the buffer
-   struct buffer_queue *next;   // Pointer to next item in the list
-};
-
-// Recursive printing function. 
-// It collects data to list. 
-// Copies list data to single buffer. 
-// Sends the buffer contents to linked_channels.
-// Total bytes contain the size of the payload in the list.
-void print_with_list (const struct context_rmcios *context,
-                      struct buffer_queue *latest,
-                      char *s,
-                      enum type_rmcios paramtype,
-                      union param_rmcios returnv,
-                      int num_params, const union param_rmcios param,
-                      int pindex, int total_size, struct buffer_queue *first)
-{
-   if (num_params > 0 && *s != 0)       
-   // print single parameter to the list
-   {
-      // Store start of non formatted string
-      char *p = s;
-      char temp;
-
-      struct buffer_queue current;
-      current.data = p;
-      current.next = NULL;
-      latest->next = &current;
-
-      // Look for non-formatted characters
-      while (*s != '%')
-      {
-         if (*s == 0)   // End of string
-         {
-            current.length = s - p;
-            current.size = current.length;
-            print_with_list (context, &current, s, paramtype,
-                             returnv, num_params, param, pindex,
-                             total_size, first);
-            return;
-         }
-         s++;
-         total_size++;
-
-      }
-
-      // Add the non formatted data to the string
-      current.length = s - p;   // Data without the '%' symbol.
-      current.size = current.length;
-      if (current.length > 0)
-         total_size--;
-
-      p = s;    // Store start of format string
-      s++;
-
-      // Collect format specifier
-      int collecting = 1;
-      int slen;
-      while (collecting == 1)
-      {
-         collecting = 0;
-         if (*s == 0)
-         {
-            print_with_list (context, &current, s, paramtype,
-                             returnv, num_params, param, pindex,
-                             total_size, first);
-         }
-         switch (*s)    
-         // Check for format end characters
-         {
-            // int
-         case 'd':
-         case 'i':
-         case 'o':
-         case 'x':
-         case 'X':
-            // Print the formatted integer :
-            s++;
-            temp = *s;
-            // Mark end of string
-            *s = 0;     
-            int ip = param_to_int (context, paramtype, param, pindex);
-            slen = snprintf (NULL, 0, p, ip);   
-            // Determine needed buffer size
-            {
-               // Allocate buffer
-               char sbuf[slen + 1];     
-               
-               // Fill buffer
-               snprintf (sbuf, slen + 1, p, ip);  
-
-               struct buffer_queue formatted;
-               formatted.next = NULL;
-               
-               // link last->this
-               current.next = &formatted;       
-               formatted.data = sbuf;
-               formatted.length = strlen (sbuf);
-               formatted.size = formatted.length;
-
-               // Add parameter to the list and increase recursion depth.
-               total_size += formatted.length;
-               // Restore string
-               *s = temp;       
-               print_with_list (context, &formatted, s, paramtype,
-                                returnv, num_params - 1, param,
-                                ++pindex, total_size, first);
-               return;
-            }
-            *s = temp;  // Restore string
-            s--;
-            break;
-            // float
-         case 'f':
-         case 'F':
-         case 'e':
-         case 'E':
-         case 'g':
-         case 'G':
-         case 'a':
-         case 'A':
-            // Print the formatted float :
-            //
-            s++;
-            temp = *s;
-            *s = 0;     // Mark end of string
-            float fp = param_to_float (context, paramtype, param, pindex);
-            // Determine needed buffer size
-            slen = snprintf (NULL, 0, p, fp);   
-            {
-               // Allocate buffer
-               char sbuf[slen + 1];     
-               // Fill buffer
-               snprintf (sbuf, slen + 1, p, fp);        
-
-               struct buffer_queue formatted;
-               formatted.next = NULL;
-               current.next = &formatted;      
-               formatted.data = sbuf;
-               formatted.length = strlen (sbuf);
-               formatted.size = formatted.length;
-
-               total_size += formatted.length;
-               // Add parameter to the list and increase recursion depth.
-               // Restore string
-               *s = temp;       
-               print_with_list (context, &formatted, s, paramtype,
-                                returnv, num_params - 1, param,
-                                ++pindex, total_size, first);
-               return;
-            }
-            *s = temp;  // Restore string
-            s--;
-
-            break;
-            // String
-         case 's':
-            // Print formatted string
-            s++;
-            temp = *s;
-            // Mark end of string
-            *s = 0;     
-            // Determine needed buffer size
-            slen = param_string_alloc_size (context, paramtype, param, pindex);
-            {
-               char sbuf[slen];
-               const char *pstr;
-               pstr = param_to_string (context, paramtype, param, pindex, 
-                                       slen, sbuf);  
-               
-               struct buffer_queue formatted;
-               formatted.next = NULL;
-               current.next = &formatted;       
-               formatted.data = (char *) pstr;
-               formatted.length = strlen (pstr);
-               formatted.size = formatted.length + 1;
-
-               total_size += formatted.length;
-
-               // Add parameter to the list and increase recursion depth.
-               // Restore string
-               *s = temp;       
-               print_with_list (context, &formatted, s, paramtype,
-                                returnv, num_params - 1, param,
-                                ++pindex, total_size, first);
-               return;
-            }
-            *s = temp;  // Restore string
-            s--;
-
-            break;
-            // Character
-         case 'c':
-            {
-               char sbuf[2];
-               // get 1 char string
-               param_to_string (context, paramtype, param, pindex, 2, sbuf); 
-
-               struct buffer_queue formatted;
-               formatted.next = NULL;
-               current.next = &formatted;       
-               formatted.data = sbuf;
-               formatted.length = 1;
-               formatted.size = 2;
-
-               total_size += formatted.length;
-               
-               // Add parameter to the list and increase recursion depth.
-               print_with_list (context, &formatted, ++s,
-                                paramtype, returnv, num_params - 1,
-                                param, ++pindex, total_size, first);
-               return;
-            }
-            break;
-         
-         case 'n':
-            break;
-         case '%':
-            {
-               struct buffer_queue formatted;
-               formatted.next = NULL;
-               current.next = &formatted;       
-               formatted.data = "%";
-               formatted.length = 1;
-               formatted.size = formatted.length;
-               total_size += formatted.length;
-
-               // Add parameter to the list and increase recursion depth.
-               print_with_list (context, &formatted, ++s,
-                                paramtype, returnv, num_params,
-                                param, pindex, total_size, first);
-               return;
-            }
-         default:
-            // Continue collecting
-            collecting = 1;     
-            break;
-         }
-         s++;
-      }
-   }
-   else // Build the final string, and send to channel
-   {
-      char buffer[total_size + strlen (s) + 1];
-      int i = 0;
-      while (first != NULL)
-      {
-         // append list data to string buffer
-         memcpy (buffer + i, first->data, first->length);       
-         i += first->length;
-         // Move to next list item
-         first = first->next;   
-      }
-      // Add null terminator
-      buffer[i] = 0;
-      strcat (buffer, s);
-
-      // Send the string to the channel
-      return_string (context, paramtype, returnv, buffer);
-   }
-   return;      // Finnish the recursive collecting
-}
-
-// prints given channel function parameters to an channel. 
-// Formats string as in printf using a single write command
-void print_param (const struct context_rmcios *context,
-                  char *format,
-                  enum type_rmcios paramtype,
-                  union param_rmcios returnv,
-                  int num_params, const union param_rmcios param)
-{
-   // insert initial list record
-   struct buffer_queue initial_queue;   
-   initial_queue.next = NULL;
-   initial_queue.data = NULL;
-   initial_queue.length = 0;
-   initial_queue.size = 0;
-
-   print_with_list (context, &initial_queue, format, paramtype, returnv,
-                    num_params, param, 0, 0, &initial_queue);
-}
-
 
 struct format_data
 {
@@ -762,7 +628,9 @@ void format_class_func (struct format_data *this,
 void init_util_channels (const struct context_rmcios *context)
 {
    // Utility channels
-   create_channel_str (context, "format", (class_rmcios) format_class_func,
-                       NULL);
+   create_channel_str (context, "compare", 
+                       (class_rmcios) compare_class_func, NULL);
+   create_channel_str (context, "format", 
+                       (class_rmcios) format_class_func, NULL);
 }
 

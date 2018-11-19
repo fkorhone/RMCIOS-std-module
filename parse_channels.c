@@ -51,9 +51,6 @@ struct buffer_data
    int pattern_length;
    char *search_buffer;
    int search_length;           // search buffer data length
-
-   // Register safe multithreading:
-   int share_register;
 };
 
 void buffer_class_func (struct buffer_data *this,
@@ -103,7 +100,6 @@ void buffer_class_func (struct buffer_data *this,
       this->buffer_size = 16;
       this->buffer = malloc (16);
       this->length = 0;
-      this->share_register = 0;
 
       // Pattern for reception
       this->pattern = NULL;
@@ -123,10 +119,6 @@ void buffer_class_func (struct buffer_data *this,
       // 1. parameter :
       if (num_params < 1)
          break;
-
-
-      // Lock the channel:
-      while (request_write_resource (&this->share_register) == 0);
 
       int size;
       size = param_to_int (context, paramtype, param, 0);
@@ -174,16 +166,10 @@ void buffer_class_func (struct buffer_data *this,
                           this->pattern_length, this->pattern);
       }
 
-      // Unlock the channel
-      stop_write_resource (&this->share_register);
-
       break;
    case write_rmcios:
       if (this == NULL)
          break;
-      // Lock the channel:
-      while (request_write_resource (&this->share_register) == 0);
-
       if (num_params < 1)       // Flush data
       {
          write_buffer (context, linked_channels (context, id),
@@ -253,10 +239,6 @@ void buffer_class_func (struct buffer_data *this,
             }
          }
       }
-
-      // Unlock the channel
-      stop_write_resource (&this->share_register);
-
       break;
    case read_rmcios:
       if (this == NULL)
@@ -427,7 +409,6 @@ struct pattern_data
    int readout_read_bytes;
 
    int enabled;
-   int share_register;
 };
 
 void pattern_class_func (struct pattern_data *this,
@@ -437,6 +418,7 @@ void pattern_class_func (struct pattern_data *this,
                          union param_rmcios returnv,
                          int num_params, const union param_rmcios param)
 {
+   int i; 
    switch (function)
    {
    case help_rmcios:
@@ -482,7 +464,6 @@ void pattern_class_func (struct pattern_data *this,
       this->readout_read = malloc (20);
 
       this->enabled = 0;
-      this->share_register = 0;
 
       // create channel
       create_channel_param (context, paramtype, param, 0, 
@@ -530,16 +511,13 @@ void pattern_class_func (struct pattern_data *this,
       this->readout_read = (char *) malloc (this->readout_size);
       this->readout_bytes = 0;
       this->readout_read_bytes = 0;
-      this->share_register = 0;
       break;
 
    case read_rmcios:
       if (this == NULL)
          break;
-      while (request_read_resource (&this->share_register) == 0);
       return_buffer (context, paramtype, returnv, this->readout_read,
                      this->readout_read_bytes);
-      stop_read_resource (&this->share_register);
       break;
 
    case write_rmcios:
@@ -573,7 +551,6 @@ void pattern_class_func (struct pattern_data *this,
             // insert new character
             this->start_buffer[j] = b.data[i];  
 
-
             // search for START pattern
             if (memcmp
                 (this->start_pattern, this->start_buffer,
@@ -597,7 +574,7 @@ void pattern_class_func (struct pattern_data *this,
                            this->stop_length) == 0)
             {
                // FOUND STOP PATTERN!
-               bytes = i + 1;
+               bytes = i + 1 - start;
                write_buffer (context,
                              linked_channels (context, id),
                              b.data + start, bytes, 0);
@@ -616,19 +593,15 @@ void pattern_class_func (struct pattern_data *this,
 
 
                // Copy data to the readable data buffer:
-               while (request_write_resource (&this->share_register) == 0);
                memcpy (this->readout_read, this->readout,
                        this->readout_bytes - this->stop_length);
                this->readout_read_bytes =
                   this->readout_bytes - this->stop_length;
-               stop_write_resource (&this->share_register);
 
                // Send new data to linked channels:
-               while (request_read_resource (&this->share_register) == 0);
                write_buffer (context,
                              linked_channels (context, id),
                              this->readout_read, this->readout_read_bytes, 0);
-               stop_read_resource (&this->share_register);
             }
 
          }
