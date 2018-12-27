@@ -38,13 +38,13 @@ along with RMCIOS.  If not, see <http://www.gnu.org/licenses/>.
 
 void init_std_channels (const struct context_rmcios *context)
 {
-   init_control_channels (context);
-   init_device_channels (context);
-   init_legacy_channels (context);
-   init_math_channels (context);
-   init_parse_channels (context);
-   init_util_channels (context);
-   init_dma_channels (context);
+   init_std_control_channels (context);
+   init_std_device_channels (context);
+   init_std_legacy_channels (context);
+   init_std_math_channels (context);
+   init_std_parse_channels (context);
+   init_std_util_channels (context);
+   init_std_dma_channels (context);
 }
 
 #ifdef INDEPENDENT_CHANNEL_MODULE

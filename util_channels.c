@@ -625,7 +625,7 @@ void format_class_func (struct format_data *this,
    }
 }
 
-void init_util_channels (const struct context_rmcios *context)
+void init_std_util_channels (const struct context_rmcios *context)
 {
    // Utility channels
    create_channel_str (context, "compare", 

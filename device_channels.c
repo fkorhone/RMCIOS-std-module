@@ -614,7 +614,7 @@ void modbus_rtu_class_func (struct conc_data *this,
    }
 }
 
-void init_device_channels (const struct context_rmcios *context)
+void init_std_device_channels (const struct context_rmcios *context)
 {
    // Device channels
    create_channel_str (context, "tsi4000",

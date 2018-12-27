@@ -473,7 +473,7 @@ void dma_error_class_func (struct dma_error_data *this,
    }
 }
 
-void init_dma_channels (const struct context_rmcios *context)
+void init_std_dma_channels (const struct context_rmcios *context)
 {
    // create dma creator channel
    create_channel_str (context, "dma", (class_rmcios) dma_class_func, NULL); 

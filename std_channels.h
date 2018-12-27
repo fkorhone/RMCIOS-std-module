@@ -35,15 +35,13 @@ extern "C" {
 #endif
 
 extern void init_std_channels(const struct context_rmcios *context) ;
-extern void init_control_channels(const struct context_rmcios *context) ;
-extern void init_device_channels(const struct context_rmcios *context) ;
-extern void init_legacy_channels(const struct context_rmcios *context) ;
-extern void init_math_channels(const struct context_rmcios *context) ;
-extern void init_parse_channels(const struct context_rmcios *context) ;
-extern void init_system_channels(const struct context_rmcios *context) ;
-extern void init_util_channels(const struct context_rmcios *context) ;
-extern void init_dma_channels(const struct context_rmcios *context) ;
-extern void init_encoding_channels(const struct context_rmcios *context) ;
+extern void init_std_control_channels(const struct context_rmcios *context) ;
+extern void init_std_device_channels(const struct context_rmcios *context) ;
+extern void init_std_legacy_channels(const struct context_rmcios *context) ;
+extern void init_std_math_channels(const struct context_rmcios *context) ;
+extern void init_std_parse_channels(const struct context_rmcios *context) ;
+extern void init_std_util_channels(const struct context_rmcios *context) ;
+extern void init_std_dma_channels(const struct context_rmcios *context) ;
 
 #ifdef __cplusplus
 }

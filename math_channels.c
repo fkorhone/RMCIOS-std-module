@@ -53,7 +53,7 @@ struct oper
    int valueB_channel;
 };
 
-void generic_operator_class_func (struct oper *this,
+void generic_std_operator_class_func (struct oper *this,
                                   const struct context_rmcios *context,
                                   int id, enum function_rmcios function,
                                   enum type_rmcios paramtype,
@@ -147,11 +147,11 @@ void sqrt_class_func (struct oper *this, struct context_rmcios *context,
       break;
    }
    // use generic implementation
-   generic_operator_class_func (this, context, id, function, paramtype, 
+   generic_std_operator_class_func (this, context, id, function, paramtype, 
                                 returnv, num_params, param, sqrt_func); 
 }
 
-void init_math_channels (const struct context_rmcios *context)
+void init_std_math_channels (const struct context_rmcios *context)
 {
    create_channel_str (context, "sqrt", (class_rmcios) sqrt_class_func, NULL);
 }

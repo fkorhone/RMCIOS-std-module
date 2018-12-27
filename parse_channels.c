@@ -624,7 +624,7 @@ void pattern_class_func (struct pattern_data *this,
    }
 }
 
-void init_parse_channels (const struct context_rmcios *context)
+void init_std_parse_channels (const struct context_rmcios *context)
 {
    // Parsing channels
    create_channel_str (context, "buffer", (class_rmcios) buffer_class_func,

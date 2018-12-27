@@ -537,7 +537,7 @@ void parser_class_func (struct parser_data *this,
       break;
    }
 }
-void init_legacy_channels (const struct context_rmcios *context)
+void init_std_legacy_channels (const struct context_rmcios *context)
 {
    create_channel_str (context, "commander",
                        (class_rmcios) commander_class_func, NULL);

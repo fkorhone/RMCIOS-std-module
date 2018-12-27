@@ -508,7 +508,7 @@ void delayed_bus_class_func (struct delayed_bus_data *this,
       break;
    }
 }
-void init_control_channels (const struct context_rmcios *context)
+void init_std_control_channels (const struct context_rmcios *context)
 {
    // Control channels
 
