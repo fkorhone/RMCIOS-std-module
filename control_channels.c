@@ -52,13 +52,13 @@ void ramp_class_func (struct ramp_data *this,
                       const struct context_rmcios *context, int id,
                       enum function_rmcios function,
                       enum type_rmcios paramtype,
-                      union param_rmcios returnv,
+                      struct combo_rmcios *returnv,
                       int num_params, const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "Ramp channel - channel that outputs a ramp.\r\n"
                      "create ramp newname\r\n"
                      "setup newname continuous \r\n"
@@ -220,13 +220,13 @@ void timerpwm_class_func (struct timerpwm_data *this,
                           const struct context_rmcios *context, int id,
                           enum function_rmcios function,
                           enum type_rmcios paramtype,
-                          union param_rmcios returnv,
+                          struct combo_rmcios *returnv,
                           int num_params, const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "help for timerpwm channel\r\n"
                      " create timerpwm newname\r\n"
                      " setup newname frequency | timer_channel\r\n"
@@ -308,13 +308,13 @@ void pid_setp_subchan_func (struct pid_type *this,
                             const struct context_rmcios *context, int id,
                             enum function_rmcios function,
                             enum type_rmcios paramtype,
-                            union param_rmcios returnv,
+                            struct combo_rmcios *returnv,
                             int num_params, const union param_rmcios param)
 {
    switch (function)
    {
    case read_rmcios:
-      return_float (context, paramtype, returnv, this->setpoint);
+      return_float (context, returnv, this->setpoint);
       break;
    case write_rmcios:
       if (num_params < 1)
@@ -330,7 +330,7 @@ void pid_class_func (struct pid_type *this,
                      const struct context_rmcios *context, int id,
                      enum function_rmcios function,
                      enum type_rmcios paramtype,
-                     union param_rmcios returnv,
+                     struct combo_rmcios *returnv,
                      int num_params, const union param_rmcios param)
 {
    float control_value;
@@ -339,7 +339,7 @@ void pid_class_func (struct pid_type *this,
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "pid controller channel help\r\n"
                      "pid controller require clock channel to know time"
                      " between update events\r\n"
@@ -425,7 +425,7 @@ void pid_class_func (struct pid_type *this,
    case read_rmcios:
       if (this == NULL)
          break;
-      return_float (context, paramtype, returnv, this->output);
+      return_float (context, returnv, this->output);
       break;
    default:
       break;
@@ -447,14 +447,14 @@ void delayed_bus_class_func (struct delayed_bus_data *this,
                              const struct context_rmcios *context, int id,
                              enum function_rmcios function,
                              enum type_rmcios paramtype,
-                             union param_rmcios returnv,
+                             struct combo_rmcios *returnv,
                              int num_params, const union param_rmcios param)
 {
 
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "Bus that passes write calls to linked channels"
                      " and waits for a fixed time.\r\n"
                      "Only single entry to the bus can be done at a time.\r\n"

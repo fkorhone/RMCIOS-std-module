@@ -57,13 +57,13 @@ void buffer_class_func (struct buffer_data *this,
                         const struct context_rmcios *context, int id,
                         enum function_rmcios function,
                         enum type_rmcios paramtype,
-                        union param_rmcios returnv,
+                        struct combo_rmcios *returnv,
                         int num_params, const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "Buffer channel \r\n"
                      "  - Channel for storing and collecting data. \r\n"
                      " create buffer newname \r\n"
@@ -176,7 +176,7 @@ void buffer_class_func (struct buffer_data *this,
                        this->buffer, this->length, 0);
 
          // Return buffer data:
-         return_buffer (context, paramtype, returnv, this->buffer,
+         return_buffer (context, returnv, this->buffer,
                         this->length);
 
          // Clear buffer contents
@@ -243,7 +243,7 @@ void buffer_class_func (struct buffer_data *this,
    case read_rmcios:
       if (this == NULL)
          break;
-      return_buffer (context, paramtype, returnv, this->buffer, this->length);
+      return_buffer (context, returnv, this->buffer, this->length);
       break;
    }
 }
@@ -264,13 +264,13 @@ void splitter_class_func (struct splitter_data *this,
                           const struct context_rmcios *context, int id,
                           enum function_rmcios function,
                           enum type_rmcios paramtype,
-                          union param_rmcios returnv,
+                          struct combo_rmcios *returnv,
                           int num_params, const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "Splitter - Channel for splitting \r\n"
                      " create splitter newname\r\n"
                      " setup newname delimiter_char reset_char "
@@ -328,7 +328,7 @@ void splitter_class_func (struct splitter_data *this,
                                this->outputs[this->slice],
                                write_rmcios,
                                paramtype,
-                               (const union param_rmcios) 0,
+                               0,
                                0, (const union param_rmcios) 0);
          this->slice = 0;
       }
@@ -353,7 +353,7 @@ void splitter_class_func (struct splitter_data *this,
                                         this->outputs[this->
                                                       slice],
                                         write_rmcios, paramtype,
-                                        (union param_rmcios) 0,
+                                        0,
                                         0, (const union param_rmcios) 0);
                   slice_start = i + 1;
                   this->slice++;
@@ -368,7 +368,7 @@ void splitter_class_func (struct splitter_data *this,
                                         this->outputs[this->
                                                       slice],
                                         write_rmcios, paramtype,
-                                        (union param_rmcios) 0,
+                                        0,
                                         0, (const union param_rmcios) 0);
                   slice_start = i + 1;
                   this->slice = 0;
@@ -415,14 +415,14 @@ void pattern_class_func (struct pattern_data *this,
                          const struct context_rmcios *context, int id,
                          enum function_rmcios function,
                          enum type_rmcios paramtype,
-                         union param_rmcios returnv,
+                         struct combo_rmcios *returnv,
                          int num_params, const union param_rmcios param)
 {
    int i; 
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "pattern scanning channel "
                      " -Channel that records data between "
                      "  start_pattern and end_pattern.\r\n"
@@ -516,7 +516,7 @@ void pattern_class_func (struct pattern_data *this,
    case read_rmcios:
       if (this == NULL)
          break;
-      return_buffer (context, paramtype, returnv, this->readout_read,
+      return_buffer (context, returnv, this->readout_read,
                      this->readout_read_bytes);
       break;
 

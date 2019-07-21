@@ -57,7 +57,8 @@ void generic_std_operator_class_func (struct oper *this,
                                   const struct context_rmcios *context,
                                   int id, enum function_rmcios function,
                                   enum type_rmcios paramtype,
-                                  union param_rmcios returnv, int num_params,
+                                  struct combo_rmcios *returnv,
+                                  int num_params,
                                   const union param_rmcios param,
                                   float (*opfunc) (float, float))
 {
@@ -100,7 +101,7 @@ void generic_std_operator_class_func (struct oper *this,
       if (this->valueB_channel != 0)
          // update B from channel
          this->valueB = read_f (context, this->valueB_channel); 
-      return_float (context, paramtype, returnv,
+      return_float (context, returnv,
                     opfunc (this->valueA, this->valueB));
       break;
    default:
@@ -113,13 +114,14 @@ void generic_std_operator_class_func (struct oper *this,
 ///////////////////////////////////////////////
 void sqrt_class_func (struct oper *this, struct context_rmcios *context,
                       int id, enum function_rmcios function,
-                      enum type_rmcios paramtype, union param_rmcios returnv,
+                      enum type_rmcios paramtype, 
+                      struct combo_rmcios *returnv,
                       int num_params, const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "help for sqrt square root channel:\r\n"
                      " create sqrt newname\r\n"
                      " write newname X # calculate result=sqrt(X) \r\n"

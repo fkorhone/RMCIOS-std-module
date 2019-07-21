@@ -63,7 +63,7 @@ void dma_p_subfunc (struct dma_data *this,
                     const struct context_rmcios *context, int id,
                     enum function_rmcios function,
                     enum type_rmcios paramtype,
-                    union param_rmcios returnv,
+                    struct combo_rmcios *returnv,
                     int num_params, const union param_rmcios param)
 {
    switch (function)
@@ -71,7 +71,7 @@ void dma_p_subfunc (struct dma_data *this,
    case read_rmcios:
       if (this == NULL)
          break;
-      return_float (context, paramtype, returnv, this->p);
+      return_float (context, returnv, this->p);
       break;
 
    case write_rmcios:
@@ -95,7 +95,7 @@ void dma_T_subfunc (struct dma_data *this,
                     const struct context_rmcios *context, int id,
                     enum function_rmcios function,
                     enum type_rmcios paramtype,
-                    union param_rmcios returnv,
+                    struct combo_rmcios *returnv,
                     int num_params, const union param_rmcios param)
 {
    switch (function)
@@ -103,7 +103,7 @@ void dma_T_subfunc (struct dma_data *this,
    case read_rmcios:
       if (this == NULL)
          break;
-      return_float (context, paramtype, returnv, this->T);
+      return_float (context, returnv, this->T);
       break;
 
    case write_rmcios:
@@ -128,7 +128,7 @@ void dma_qs_subfunc (struct dma_data *this,
                      const struct context_rmcios *context, int id,
                      enum function_rmcios function,
                      enum type_rmcios paramtype,
-                     union param_rmcios returnv,
+                     struct combo_rmcios *returnv,
                      int num_params, const union param_rmcios param)
 {
    switch (function)
@@ -136,7 +136,7 @@ void dma_qs_subfunc (struct dma_data *this,
    case read_rmcios:
       if (this == NULL)
          break;
-      return_float (context, paramtype, returnv, this->qs);
+      return_float (context, returnv, this->qs);
       break;
 
    case write_rmcios:
@@ -160,7 +160,7 @@ void dma_v_subfunc (struct dma_data *this,
                     const struct context_rmcios *context, int id,
                     enum function_rmcios function,
                     enum type_rmcios paramtype,
-                    union param_rmcios returnv,
+                    struct combo_rmcios *returnv,
                     int num_params, const union param_rmcios param)
 {
    switch (function)
@@ -168,7 +168,7 @@ void dma_v_subfunc (struct dma_data *this,
    case read_rmcios:
       if (this == NULL)
          break;
-      return_float (context, paramtype, returnv, this->V);
+      return_float (context, returnv, this->V);
       break;
    default:
       break;
@@ -179,7 +179,7 @@ void dma_dp_subfunc (struct dma_data *this,
                      const struct context_rmcios *context, int id,
                      enum function_rmcios function,
                      enum type_rmcios paramtype,
-                     union param_rmcios returnv,
+                     struct combo_rmcios *returnv,
                      int num_params, const union param_rmcios param)
 {
    switch (function)
@@ -187,7 +187,7 @@ void dma_dp_subfunc (struct dma_data *this,
    case read_rmcios:
       if (this == NULL)
          break;
-      return_float (context, paramtype, returnv, this->dp);
+      return_float (context, returnv, this->dp);
       break;
 
    case write_rmcios:
@@ -211,13 +211,13 @@ void dma_class_func (struct dma_data *this,
                      const struct context_rmcios *context, int id,
                      enum function_rmcios function,
                      enum type_rmcios paramtype,
-                     union param_rmcios returnv,
+                     struct combo_rmcios *returnv,
                      int num_params, const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "Differential mobility analyzer channel help: \r\n"
                      "Calculates DMA voltage using sheath flow, pressure"
                      ", and temperature.\r\n"
@@ -348,7 +348,7 @@ void dma_class_func (struct dma_data *this,
       if (this == NULL)
          break;
       {
-         return_float (context, paramtype, returnv, this->V);
+         return_float (context, returnv, this->V);
       }
       break;
    }
@@ -373,13 +373,13 @@ void dma_error_class_func (struct dma_error_data *this,
                            const struct context_rmcios *context, int id,
                            enum function_rmcios function,
                            enum type_rmcios paramtype,
-                           union param_rmcios returnv,
+                           struct combo_rmcios *returnv,
                            int num_params, const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "Estimates dma error in % with measured values "
                      " from specified channels/constants\r\n"
                      " create dma_error newname \r\n"
@@ -440,7 +440,7 @@ void dma_error_class_func (struct dma_error_data *this,
              || this->qs_channel == 0 || this->v_channel == 0)
          {
             // return NAN
-            return_float (context, paramtype, returnv, 1.0 / 0.0); 
+            return_float (context, returnv, 1.0 / 0.0); 
             break;
          }
 
@@ -464,7 +464,7 @@ void dma_error_class_func (struct dma_error_data *this,
             calculate_dp (v, dp, T + 273.15, p, this->r1, this->r2,
                           this->length, qs / 60000);
          dp_calc = (1.0 - dp / dp_calc) * 100.0;
-         return_float (context, paramtype, returnv, dp_calc);
+         return_float (context, returnv, dp_calc);
       }
       break;
 
