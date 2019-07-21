@@ -53,14 +53,15 @@ void commander_class_func (struct commander_data *this,
                            const struct context_rmcios *context, int id,
                            enum function_rmcios function,
                            enum type_rmcios paramtype,
-                           union param_rmcios returnv, int num_params,
+                           struct combo_rmcios *returnv,
+                           int num_params,
                            const union param_rmcios param)
 {
    int slen;
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "Channel for interfacing with instruments command"
                      " interface\r\n"
                      " create commander newname\r\n"
@@ -123,12 +124,19 @@ void commander_class_func (struct commander_data *this,
    case write_rmcios:
       if (this == NULL)
          break;
+      
       // Read data to linked channel
+      struct combo_rmcios destination =
+      {
+         .paramtype = channel_rmcios,
+         .num_params = 1,
+         .param.channel = linked_channels (context, id)
+      };
+
       // Send commanded channel read data to linked channel:
       context->run_channel (context, this->commanded_channel,
-                            read_rmcios, channel_rmcios,
-                            (union param_rmcios) linked_channels (context,
-                                                                  id), 0,
+                            read_rmcios, buffer_rmcios,
+                            &destination, 0,
                             (const union param_rmcios) 0);
 
       // Write the parameter printed write_command to commanded channel:
@@ -164,14 +172,15 @@ void branch_class_func (struct branch_data *this,
                         const struct context_rmcios *context, int id,
                         enum function_rmcios function,
                         enum type_rmcios paramtype,
-                        union param_rmcios returnv, int num_params,
+                        struct combo_rmcios *returnv,
+                        int num_params,
                         const union param_rmcios param)
 {
    int i;
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "branch channel help:\r\n"
                      " create branch newname\r\n"
                      " setup newname ch1 ch2 ch3... \r\n"
@@ -229,11 +238,12 @@ void branch_class_func (struct branch_data *this,
          break;
       for (i = 0; i < this->num_linked; i++)
       { // execute linked channels
-
          context->run_channel (context, this->linked_channels[i],
                                function, paramtype, returnv, num_params, param);
-         if (returnv.p != NULL)
-            return_string (context, paramtype, returnv, " ");
+         if (returnv != NULL)
+         {
+            return_string (context, returnv, " ");
+         }
       }
       break;
    default:
@@ -295,7 +305,8 @@ void parser_class_func (struct parser_data *this,
                         const struct context_rmcios *context, int id,
                         enum function_rmcios function,
                         enum type_rmcios paramtype,
-                        union param_rmcios returnv, int num_params,
+                        struct combo_rmcios *returnv,
+                        int num_params,
                         const union param_rmcios param)
 {
    int plen;
@@ -316,7 +327,7 @@ void parser_class_func (struct parser_data *this,
       // 3. wait for KW.
       // 4. enable reception (stop when SOD found)
       // 5. start from beginning.
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "parser - "
                      "tool for picking single value from stream message\r\n"
                      "create parser name "
@@ -533,7 +544,7 @@ void parser_class_func (struct parser_data *this,
    case read_rmcios:
       if (this == NULL)
          break;
-      return_string (context, paramtype, returnv, this->buffer);
+      return_string (context, returnv, this->buffer);
       break;
    }
 }

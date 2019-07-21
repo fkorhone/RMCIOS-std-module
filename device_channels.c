@@ -64,13 +64,14 @@ void tsi_temperature_subchan_func (struct tsi_flow_data *this,
                                    const struct context_rmcios *context,
                                    int id, enum function_rmcios function,
                                    enum type_rmcios paramtype,
-                                   union param_rmcios returnv, int num_params,
+                                   struct combo_rmcios *returnv,
+                                   int num_params,
                                    const union param_rmcios param)
 {
    switch (function)
    {
    case read_rmcios:
-      return_float (context, paramtype, returnv, this->temp);
+      return_float (context, returnv, this->temp);
       break;
    default:
       break;
@@ -81,13 +82,13 @@ void tsi_pressure_subchan_func (struct tsi_flow_data *this,
                                 const struct context_rmcios *context, int id,
                                 enum function_rmcios function,
                                 enum type_rmcios paramtype,
-                                union param_rmcios returnv,
+                                struct combo_rmcios *returnv,
                                 int num_params, const union param_rmcios param)
 {
    switch (function)
    {
    case read_rmcios:
-      return_float (context, paramtype, returnv, this->pressure);
+      return_float (context, returnv, this->pressure);
       break;
    default:
       break;
@@ -98,13 +99,13 @@ void tsi_flow_subchan_func (struct tsi_flow_data *this,
                             const struct context_rmcios *context, int id,
                             enum function_rmcios function,
                             enum type_rmcios paramtype,
-                            union param_rmcios returnv,
+                            struct combo_rmcios *returnv,
                             int num_params, const union param_rmcios param)
 {
    switch (function)
    {
    case read_rmcios:
-      return_float (context, paramtype, returnv, this->flow);
+      return_float (context, returnv, this->flow);
       break;
    default:
       break;
@@ -115,7 +116,7 @@ void tsi_flow_class_func (struct tsi_flow_data *this,
                           const struct context_rmcios *context, int id,
                           enum function_rmcios function,
                           enum type_rmcios paramtype,
-                          union param_rmcios returnv,
+                          struct combo_rmcios *returnv,
                           int num_params, const union param_rmcios param)
 {
    char c, str[2];
@@ -123,7 +124,7 @@ void tsi_flow_class_func (struct tsi_flow_data *this,
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "TSI 4000 series flowmeter channel help: \r\n"
                      " create tsi_flow newname \r\n"
                      " setup serial_channel | timeout_timer timeout_time "
@@ -188,7 +189,7 @@ void tsi_flow_class_func (struct tsi_flow_data *this,
       break;
 
    case read_rmcios:
-      return_float (context, paramtype, returnv, this->flow);
+      return_float (context, returnv, this->flow);
       break;
 
    case write_rmcios:  
@@ -285,13 +286,13 @@ void atm_hv_class_func (struct atm_hv_data *this,
                         const struct context_rmcios *context, int id,
                         enum function_rmcios function,
                         enum type_rmcios paramtype,
-                        union param_rmcios returnv,
+                        struct combo_rmcios *returnv,
                         int num_params, const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "hy atm high-voltage supply help:\r\n"
                      "create atm_hv newname\r\n"
                      " setup newname wait_channel serial_channel address\r\n"
@@ -361,7 +362,7 @@ void atm_hv_class_func (struct atm_hv_data *this,
       write_f (context, this->wait_channel, 0.3);       
       float test;
       test = read_f (context, this->serial_channel);
-      return_float (context, paramtype, returnv, test);
+      return_float (context, returnv, test);
       break;
    }
 }
@@ -384,13 +385,13 @@ void pt_temperature_class_func (struct pt_temperature_data *this,
                                 const struct context_rmcios *context, int id,
                                 enum function_rmcios function,
                                 enum type_rmcios paramtype,
-                                union param_rmcios returnv,
+                                struct combo_rmcios *returnv,
                                 int num_params, const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "pt channel - "
                      "channel for platinum temperature sensor conversion\r\n"
                      "create pt newname\r\n"
@@ -448,7 +449,7 @@ void pt_temperature_class_func (struct pt_temperature_data *this,
    case read_rmcios:
       if (this == NULL)
          break;
-      return_float (context, paramtype, returnv, this->T);
+      return_float (context, returnv, this->T);
       break;
 
    case write_rmcios:
@@ -490,13 +491,13 @@ void conc_class_func (struct conc_data *this,
                       const struct context_rmcios *context, int id,
                       enum function_rmcios function,
                       enum type_rmcios paramtype,
-                      union param_rmcios returnv,
+                      struct combo_rmcios *returnv,
                       int num_params, const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "Calculates concentration (1/cm^3) \r\n"
                      "setup conc 0=sample_flow(l/min)"
                      " 1=counter_channel "
@@ -552,7 +553,7 @@ void conc_class_func (struct conc_data *this,
       if (this->sample_flow_channel != 0)
          this->sample_flow =
             read_f (context, this->sample_flow_channel) * 16.6666667;
-      return_float (context, paramtype, returnv,
+      return_float (context, returnv,
                     read_f (context,
                             this->counter_channel) / read_f (context,
                                                              this->
@@ -572,7 +573,7 @@ void conc_class_func (struct conc_data *this,
                       NULL) / write_fv (context, this->timer_channel, 0,
                                         NULL) / this->sample_flow;
          write_f (context, linked_channels (context, id), conc);
-         return_float (context, paramtype, returnv, conc);
+         return_float (context, returnv, conc);
       }
       break;
    }
@@ -596,13 +597,13 @@ void modbus_rtu_class_func (struct conc_data *this,
                             const struct context_rmcios *context, int id,
                             enum function_rmcios function,
                             enum type_rmcios paramtype,
-                            union param_rmcios returnv,
+                            struct combo_rmcios *returnv,
                             int num_params, const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "Channel for communicating with Modbus RTU -devices \r\n"
                      "create modbus_rtu newname\r\n"
                      "setup newname communication_channel | "

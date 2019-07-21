@@ -46,14 +46,14 @@ void compare_class_func (void *this,
                         const struct context_rmcios *context, int id,
                         enum function_rmcios function,
                         enum type_rmcios paramtype,
-                        union param_rmcios returnv,
+                        struct combo_rmcios *returnv,
                         int num_params, const union param_rmcios param){
    int pstrlen;
    int write=0;
    switch (function)
    {
       case help_rmcios:
-         return_string (context, paramtype, returnv,
+         return_string (context, returnv,
               "help for compare channel\r\n"
               "create compare newname\r\n"
               "read compare type value1 value2\r\n"
@@ -183,7 +183,7 @@ void compare_class_func (void *this,
                }
                break ;
          }
-         return_int(context,paramtype,returnv,result) ;
+         return_int(context, returnv, result);
 
          // Send result to linked on write
          if(write==1) write_i(context, linked_channels(context,id), result) ;
@@ -209,13 +209,13 @@ void format_class_func (struct format_data *this,
                         const struct context_rmcios *context, int id,
                         enum function_rmcios function,
                         enum type_rmcios paramtype,
-                        union param_rmcios returnv,
+                        struct combo_rmcios *returnv,
                         int num_params, const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "format channel "
                      " - Channel for printing channel read data. \r\n"
                      "   Uses same using format as printf.\r\n"
@@ -337,7 +337,7 @@ void format_class_func (struct format_data *this,
    case read_rmcios:
       if (this == NULL)
          break;
-      return_string (context, paramtype, returnv, this->buffer);
+      return_string (context, returnv, this->buffer);
       break;
 
    case write_rmcios:
@@ -501,20 +501,28 @@ void format_class_func (struct format_data *this,
                                              call_param_index);
                   else
                   {
-                     struct buffer_rmcios retv;
-                     retv.data = NULL;
-                     retv.length = 0;
-                     retv.size = 0;
-                     retv.required_size = 0;
+                     struct buffer_rmcios buffer =
+                     {
+                           .data = NULL,
+                           .length = 0,
+                           .size = 0,
+                           .required_size = 0
+                     };
+
+                     struct combo_rmcios retv =
+                     {
+                        .paramtype = buffer_rmcios,
+                        .num_params = 1,
+                        .param.bv = &buffer 
+                     };
+                     
                      context->run_channel (context,
                                            param_channel,
                                            read_rmcios,
                                            buffer_rmcios,
-                                           (union
-                                            param_rmcios)
-                                           &retv, 0,
+                                           0, 0,
                                            (const union param_rmcios) 0);
-                     slen = retv.required_size;
+                     slen = buffer.required_size;
                   }
 
                   // Double buffer size until parameter fits in.
