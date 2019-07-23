@@ -324,7 +324,7 @@ void splitter_class_func (struct splitter_data *this,
          break;
       if (num_params < 1)
       {
-         context->run_channel (context,
+         run_channel (context,
                                this->outputs[this->slice],
                                write_rmcios,
                                paramtype,
@@ -349,7 +349,7 @@ void splitter_class_func (struct splitter_data *this,
                                 this->outputs[this->slice],
                                 b.data + slice_start, i - slice_start, 0);
 
-                  context->run_channel (context,
+                  run_channel (context,
                                         this->outputs[this->
                                                       slice],
                                         write_rmcios, paramtype,
@@ -364,7 +364,7 @@ void splitter_class_func (struct splitter_data *this,
                                 this->outputs[this->slice],
                                 b.data + slice_start, i - slice_start, 0);
 
-                  context->run_channel (context,
+                  run_channel (context,
                                         this->outputs[this->
                                                       slice],
                                         write_rmcios, paramtype,

@@ -516,7 +516,7 @@ void format_class_func (struct format_data *this,
                         .param.bv = &buffer 
                      };
                      
-                     context->run_channel (context,
+                     run_channel (context,
                                            param_channel,
                                            read_rmcios,
                                            buffer_rmcios,

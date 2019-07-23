@@ -499,7 +499,7 @@ void delayed_bus_class_func (struct delayed_bus_data *this,
          break;
       
       // Pass write command to linked channels
-      context->run_channel (context, linked_channels (context, id),
+      run_channel (context, linked_channels (context, id),
                             write_rmcios, paramtype, returnv, num_params,
                             param);
       

@@ -117,7 +117,7 @@ void commander_class_func (struct commander_data *this,
       {
          write_str (context, this->commanded_channel, this->read_command, 0);
       }
-      context->run_channel (context, this->commanded_channel, function,
+      run_channel (context, this->commanded_channel, function,
                             paramtype, returnv, 0, param);
 
       break;
@@ -134,7 +134,7 @@ void commander_class_func (struct commander_data *this,
       };
 
       // Send commanded channel read data to linked channel:
-      context->run_channel (context, this->commanded_channel,
+      run_channel (context, this->commanded_channel,
                             read_rmcios, buffer_rmcios,
                             &destination, 0,
                             (const union param_rmcios) 0);
@@ -238,7 +238,7 @@ void branch_class_func (struct branch_data *this,
          break;
       for (i = 0; i < this->num_linked; i++)
       { // execute linked channels
-         context->run_channel (context, this->linked_channels[i],
+         run_channel (context, this->linked_channels[i],
                                function, paramtype, returnv, num_params, param);
          if (returnv != NULL)
          {
