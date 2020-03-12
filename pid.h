@@ -76,13 +76,6 @@ float pid_control(struct pid_type *t,float measured_value,float dt)
   		t->output = t->Kp*error + t->Ki*t->integral ;
 	}
 
-	if( !isnormal( t->output) )
-	{
-		t->output=t->safe_output ;
-		t->integral=0 ;
-		t->previous_error=0 ;
-	}
-				
 	return t->output ;
 }
 
