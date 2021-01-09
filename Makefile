@@ -13,6 +13,5 @@ compile:
 
 install:
 	-${MKDIR} "${INSTALLDIR}${/}modules"
-	${COPY} python-module.dll ${INSTALLDIR}${/}modules
-	${COPY} *.py ${INSTALLDIR}${/}
+	${COPY} *.dll ${INSTALLDIR}${/}modules
 
